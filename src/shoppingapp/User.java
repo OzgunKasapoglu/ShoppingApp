@@ -125,10 +125,6 @@ public class User {
 
 
     public void order(Product product) {
-        if (creditCards == null || creditCards.isEmpty()) {
-            System.out.println("You can't order without adding a credit card. Please add a card.");
-            return;
-        }
         if (product != null) {
             orderedProducts.add(product);
             System.out.println("Sipariş verildi! Eklenen ürün:" + product.getProductName());
