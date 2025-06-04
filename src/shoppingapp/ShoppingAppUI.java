@@ -1,5 +1,8 @@
 package shoppingapp;
-
+/**
+ *
+ * @author ozgunkasapoglu
+ */
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
@@ -10,12 +13,12 @@ public class ShoppingAppUI extends javax.swing.JFrame {
     private ArrayList<Product> products = new ArrayList<>();
     private User currentUser = null;
     private DefaultListModel<String> productListModel = new DefaultListModel<>();
+    private ArrayList<Order> completedOrders = new ArrayList<>();
 
 
     /** Creates new form ShoppingAppUI */
     public ShoppingAppUI() {
         initComponents();
-        // Add some sample products
         products.add(new Product("Laptop", "Black", "Electronics", 10, 2.5, "A powerful laptop"));
         products.add(new Product("Smartphone", "White", "Electronics", 20, 0.3, "Latest smartphone"));
         products.add(new Product("Headphones", "Red", "Audio", 15, 0.2, "Noise cancelling"));
@@ -38,7 +41,7 @@ public class ShoppingAppUI extends javax.swing.JFrame {
         tabbedPane.addTab("Login/Register", createLoginPanel());
         tabbedPane.addTab("Products", createProductsPanel());
         tabbedPane.addTab("Cart", createCartPanel());
-        tabbedPane.addTab("Orders",createAccountPanel());
+        tabbedPane.addTab("Orders",createOrdersPanel());
         tabbedPane.addTab("Favorites", createFavoritesPanel());
         tabbedPane.addTab("Account", createAccountPanel());
 
@@ -51,7 +54,6 @@ public class ShoppingAppUI extends javax.swing.JFrame {
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(5, 5, 5, 5);
 
-        // Login section
         JPanel loginPanel = new JPanel(new GridLayout(3, 2, 5, 5));
         loginPanel.setBorder(BorderFactory.createTitledBorder("Login"));
 
@@ -80,7 +82,6 @@ public class ShoppingAppUI extends javax.swing.JFrame {
         });
         loginPanel.add(loginButton);
 
-        // Registration section
         JPanel registerPanel = new JPanel(new GridLayout(9, 2, 5, 5));
         registerPanel.setBorder(BorderFactory.createTitledBorder("Register"));
 
@@ -134,7 +135,6 @@ public class ShoppingAppUI extends javax.swing.JFrame {
         });
         registerPanel.add(registerButton);
 
-        // Add panels to main panel
         gbc.gridx = 0;
         gbc.gridy = 0;
         panel.add(loginPanel, gbc);
@@ -147,19 +147,16 @@ public class ShoppingAppUI extends javax.swing.JFrame {
     
     private JPanel createProductsPanel() {
         JPanel panel = new JPanel(new BorderLayout());
-        
-        // Product list
+
         JList<String> productList = new JList<>(productListModel);
         JScrollPane scrollPane = new JScrollPane(productList);
         panel.add(scrollPane, BorderLayout.CENTER);
-        
-        // Initially populate the product list
+
         for (Product product : products) {
             productListModel.addElement(product.getProductName() + " - " + product.getProductDescription() +
                                        " - " + product.getProductCategory() + " - Stock: " + product.getProductStockInformation());
         }
-        
-        // Buttons panel
+
         JPanel buttonsPanel = new JPanel();
         
         JButton refreshButton = new JButton("Refresh");
@@ -250,19 +247,20 @@ public class ShoppingAppUI extends javax.swing.JFrame {
                 return;
             }
 
-            // Process each product in the cart
-            for (Product product : currentUser.getOrderedProducts()) {
-                // Decrease stock by 1 for each product
-                product.order(1);
-            }
+            CreditCard selectedCard = currentUser.getCreditCards().get(0);
 
-            // Clear the cart after successful checkout
+            ArrayList<Product> productsToProcess = new ArrayList<>(currentUser.getOrderedProducts());
+
             currentUser.getOrderedProducts().clear();
-
-            // Refresh the cart list
             cartListModel.clear();
 
-            // Refresh the products list to show updated stock
+            for (Product product : productsToProcess) {
+                product.setProductStockInformation(product.getProductStockInformation() - 1);
+
+                Order order = new Order(currentUser, product, selectedCard);
+                completedOrders.add(order);
+            }
+
             productListModel.clear();
             for (Product product : products) {
                 productListModel.addElement(product.getProductName() + " - " + product.getProductDescription() +
@@ -272,20 +270,60 @@ public class ShoppingAppUI extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(this, "Order placed successfully!");
         });
         buttonsPanel.add(checkoutButton);
-        
+
+
+        JButton removeItemButton = new JButton("Remove Selected Item");
+        removeItemButton.addActionListener(e -> {
+            if (currentUser == null) {
+                JOptionPane.showMessageDialog(panel, "Please login first");
+                return;
+            }
+
+            int selectedIndex = cartList.getSelectedIndex();
+            if (selectedIndex >= 0 && selectedIndex < currentUser.getOrderedProducts().size()) {
+                currentUser.getOrderedProducts().remove(selectedIndex);
+                cartListModel.remove(selectedIndex);
+                JOptionPane.showMessageDialog(panel, "Item removed from cart");
+            } else {
+                JOptionPane.showMessageDialog(panel, "Please select an item to remove");
+            }
+        });
+        buttonsPanel.add(removeItemButton);
+
+        JButton clearCartButton = new JButton("Clear Cart");
+        clearCartButton.addActionListener(e -> {
+            if (currentUser == null || currentUser.getOrderedProducts().isEmpty()) {
+                JOptionPane.showMessageDialog(panel, "Cart is already empty");
+                return;
+            }
+
+            int confirm = JOptionPane.showConfirmDialog(panel,
+                    "Are you sure you want to clear your entire cart?",
+                    "Confirm Clear Cart", JOptionPane.YES_NO_OPTION);
+
+            if (confirm == JOptionPane.YES_OPTION) {
+                currentUser.getOrderedProducts().clear();
+                cartListModel.clear();
+                JOptionPane.showMessageDialog(panel, "Cart cleared successfully");
+            }
+        });
+        buttonsPanel.add(clearCartButton);
+
         panel.add(buttonsPanel, BorderLayout.SOUTH);
         
         return panel;
     }
-    
+
     private JPanel createFavoritesPanel() {
         JPanel panel = new JPanel(new BorderLayout());
-        
+
         DefaultListModel<String> favoritesListModel = new DefaultListModel<>();
         JList<String> favoritesList = new JList<>(favoritesListModel);
         JScrollPane scrollPane = new JScrollPane(favoritesList);
         panel.add(scrollPane, BorderLayout.CENTER);
-        
+
+        JPanel buttonsPanel = new JPanel();
+
         JButton refreshButton = new JButton("Refresh Favorites");
         refreshButton.addActionListener(e -> {
             favoritesListModel.clear();
@@ -295,16 +333,34 @@ public class ShoppingAppUI extends javax.swing.JFrame {
                 }
             }
         });
-        
-        panel.add(refreshButton, BorderLayout.SOUTH);
-        
+        buttonsPanel.add(refreshButton);
+
+        JButton removeButton = new JButton("Remove from Favorites");
+        removeButton.addActionListener(e -> {
+            if (currentUser == null) {
+                JOptionPane.showMessageDialog(panel, "Please login first");
+                return;
+            }
+
+            int selectedIndex = favoritesList.getSelectedIndex();
+            if (selectedIndex >= 0 && selectedIndex < currentUser.getFavoriteProducts().size()) {
+                currentUser.getFavoriteProducts().remove(selectedIndex);
+                favoritesListModel.remove(selectedIndex);
+                JOptionPane.showMessageDialog(panel, "Item removed from favorites");
+            } else {
+                JOptionPane.showMessageDialog(panel, "Please select an item to remove");
+            }
+        });
+        buttonsPanel.add(removeButton);
+
+        panel.add(buttonsPanel, BorderLayout.SOUTH);
+
         return panel;
     }
 
     private JPanel createAccountPanel() {
         JPanel panel = new JPanel(new BorderLayout());
 
-        // User info panel
         JPanel userInfoPanel = new JPanel(new GridLayout(0, 2, 5, 5));
         userInfoPanel.setBorder(BorderFactory.createTitledBorder("User Information"));
 
@@ -318,29 +374,39 @@ public class ShoppingAppUI extends javax.swing.JFrame {
         userInfoPanel.add(nameLabel);
         userInfoPanel.add(nameValue);
 
+        JLabel dbLabel = new JLabel("Date of Birth: ");
+        JLabel dbValue = new JLabel();
+        userInfoPanel.add(dbLabel);
+        userInfoPanel.add(dbValue);
+
         JLabel emailLabel = new JLabel("Email: ");
         JLabel emailValue = new JLabel();
         userInfoPanel.add(emailLabel);
         userInfoPanel.add(emailValue);
 
-        JButton refreshButton = new JButton("Refresh");
-        refreshButton.addActionListener(e -> {
-            if (currentUser != null) {
-                usernameValue.setText(currentUser.getUsername());
-                nameValue.setText(currentUser.getName() + " " + currentUser.getSurname());
-                emailValue.setText(currentUser.getEmailAddress());
-            } else {
-                usernameValue.setText("Not logged in");
-                nameValue.setText("");
-                emailValue.setText("");
-            }
-        });
+        JLabel homeAddressLabel = new JLabel("Home Address: ");
+        JLabel homeAddressValue = new JLabel();
+        userInfoPanel.add(homeAddressLabel);
+        userInfoPanel.add(homeAddressValue);
 
-        // Credit card panel
-        JPanel creditCardPanel = new JPanel(new GridLayout(2, 1, 5, 5));
-        creditCardPanel.setBorder(BorderFactory.createTitledBorder("Add Credit Card"));
+        JLabel workAddressLabel = new JLabel("Work Address: ");
+        JLabel workAddressValue = new JLabel();
+        userInfoPanel.add(workAddressLabel);
+        userInfoPanel.add(workAddressValue);
 
-        JButton addCardButton = new JButton("Add Credit Card");
+
+        JPanel creditCardDisplayPanel = new JPanel(new BorderLayout());
+        creditCardDisplayPanel.setBorder(BorderFactory.createTitledBorder("Your Credit Cards"));
+
+        DefaultListModel<String> cardListModel = new DefaultListModel<>();
+        JList<String> cardList = new JList<>(cardListModel);
+        JScrollPane cardScrollPane = new JScrollPane(cardList);
+        creditCardDisplayPanel.add(cardScrollPane, BorderLayout.CENTER);
+
+        JPanel creditCardActionPanel = new JPanel(new FlowLayout());
+        creditCardActionPanel.setBorder(BorderFactory.createTitledBorder("Credit Card Actions"));
+
+        JButton addCardButton = new JButton("Add Random Credit Card");
         addCardButton.addActionListener(e -> {
             if (currentUser == null) {
                 JOptionPane.showMessageDialog(panel, "Please login first");
@@ -349,45 +415,220 @@ public class ShoppingAppUI extends javax.swing.JFrame {
 
             CreditCard card = new CreditCard(currentUser);
             currentUser.getCreditCards().add(card);
+
+            cardListModel.addElement("Card Number: " + card.getFormattedCardNumber() +
+                    " | Exp: " + card.getExpirationDate() +
+                    " | CVV: " + card.getSecurityCode() +
+                    " | Cardholder: " + card.getCardholderName());
+
             JOptionPane.showMessageDialog(panel,
-                    "Credit card added successfully!\nCard number: " + card.getCardNumber() +
+                    "Credit card added successfully!\nCard number: " + card.getFormattedCardNumber() +
                             "\nExpiry: " + card.getExpirationDate() +
                             "\nCVV: " + card.getSecurityCode() +
                             "\nCardholder: " + card.getCardholderName());
         });
-        creditCardPanel.add(addCardButton);
+        creditCardActionPanel.add(addCardButton);
 
-        // Add panels
+        JButton addManualCardButton = new JButton("Enter Card Manually");
+        addManualCardButton.addActionListener(e -> {
+            if (currentUser == null) {
+                JOptionPane.showMessageDialog(panel, "Please login first");
+                return;
+            }
+
+            JPanel cardForm = new JPanel(new GridLayout(0, 2, 5, 5));
+
+            JTextField cardNumberField = new JTextField(16);
+            cardForm.add(new JLabel("Card Number:"));
+            cardForm.add(cardNumberField);
+
+            JTextField expiryField = new JTextField("MM/YY");
+            cardForm.add(new JLabel("Expiry Date:"));
+            cardForm.add(expiryField);
+
+            JTextField cvvField = new JTextField(3);
+            cardForm.add(new JLabel("CVV:"));
+            cardForm.add(cvvField);
+
+            JTextField nameField = new JTextField(currentUser.getName() + " " + currentUser.getSurname());
+            cardForm.add(new JLabel("Cardholder Name:"));
+            cardForm.add(nameField);
+
+            JLabel noteLabel = new JLabel("Click Cancel to go back without adding a card");
+            noteLabel.setFont(new Font(noteLabel.getFont().getName(), Font.ITALIC, noteLabel.getFont().getSize()));
+            JPanel notePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+            notePanel.add(noteLabel);
+
+            JPanel mainFormPanel = new JPanel(new BorderLayout());
+            mainFormPanel.add(cardForm, BorderLayout.CENTER);
+            mainFormPanel.add(notePanel, BorderLayout.SOUTH);
+
+            int result = JOptionPane.showConfirmDialog(panel, mainFormPanel,
+                    "Enter Card Details", JOptionPane.OK_CANCEL_OPTION);
+
+            if (result == JOptionPane.OK_OPTION) {
+                String cardNumber = cardNumberField.getText().trim();
+                String expiry = expiryField.getText().trim();
+                String cvv = cvvField.getText().trim();
+                String name = nameField.getText().trim();
+
+                if (cardNumber.isEmpty() || expiry.isEmpty() || cvv.isEmpty() || name.isEmpty() || expiry.equals("MM/YY")) {
+                    JOptionPane.showMessageDialog(panel, "All fields are required. Please fill them out.",
+                            "Validation Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                CreditCard card = new CreditCard(currentUser);
+                card.setCardNumber(cardNumber);
+                card.setExpirationDate(expiry);
+                card.setSecurityCode(cvv);
+                card.setCardholderName(name);
+
+                currentUser.getCreditCards().add(card);
+
+                cardListModel.addElement("Card: " + card.getFormattedCardNumber() +
+                        " | Exp: " + card.getExpirationDate() +
+                        " | CVV: " + card.getSecurityCode());
+
+                JOptionPane.showMessageDialog(panel, "Credit card added successfully!");
+            }
+        });
+        creditCardActionPanel.add(addManualCardButton);
+
+
+        JButton deleteCardButton = new JButton("Delete Credit Card");
+        deleteCardButton.addActionListener(e -> {
+            if (currentUser == null) {
+                JOptionPane.showMessageDialog(panel, "Please login first");
+                return;
+            }
+
+            int selectedIndex = cardList.getSelectedIndex();
+            if (selectedIndex >= 0 && selectedIndex < currentUser.getCreditCards().size()) {
+                int confirm = JOptionPane.showConfirmDialog(panel,
+                        "Are you sure you want to delete this credit card?",
+                        "Confirm Deletion", JOptionPane.YES_NO_OPTION);
+
+                if (confirm == JOptionPane.YES_OPTION) {
+                    currentUser.getCreditCards().remove(selectedIndex);
+                    cardListModel.remove(selectedIndex);
+                    JOptionPane.showMessageDialog(panel, "Credit card removed successfully!");
+                }
+            } else {
+                JOptionPane.showMessageDialog(panel, "Please select a credit card to delete");
+            }
+        });
+        creditCardActionPanel.add(deleteCardButton);
+
+        JButton refreshButton = new JButton("Refresh");
+        refreshButton.addActionListener(e -> {
+            if (currentUser != null) {
+                usernameValue.setText(currentUser.getUsername());
+                nameValue.setText(currentUser.getName() + " " + currentUser.getSurname());
+                dbValue.setText(currentUser.getDateOfBirth());
+                emailValue.setText(currentUser.getEmailAddress());
+                homeAddressValue.setText(currentUser.getHomeAddress());
+                workAddressValue.setText(currentUser.getWorkAddress());
+
+                cardListModel.clear();
+                for (CreditCard card : currentUser.getCreditCards()) {
+                    cardListModel.addElement("Card Number: " + card.getFormattedCardNumber() +
+                            " | Exp: " + card.getExpirationDate() +
+                            " | CVV: " + card.getSecurityCode() +
+                            " | Cardholder: " + card.getCardholderName());
+                }
+            } else {
+                usernameValue.setText("Not logged in");
+                nameValue.setText("");
+                dbValue.setText("");
+                emailValue.setText("");
+                homeAddressValue.setText("");
+                workAddressValue.setText("");
+                cardListModel.clear();
+            }
+        });
+
+        JPanel centerPanel = new JPanel(new BorderLayout());
+        centerPanel.add(creditCardDisplayPanel, BorderLayout.CENTER);
+        centerPanel.add(creditCardActionPanel, BorderLayout.SOUTH);
+
         panel.add(userInfoPanel, BorderLayout.NORTH);
-        panel.add(creditCardPanel, BorderLayout.CENTER);
+        panel.add(centerPanel, BorderLayout.CENTER);
         panel.add(refreshButton, BorderLayout.SOUTH);
 
         return panel;
     }
-    
+
     private JPanel createOrdersPanel() {
         JPanel panel = new JPanel(new BorderLayout());
-        
+
         DefaultListModel<String> ordersListModel = new DefaultListModel<>();
         JList<String> ordersList = new JList<>(ordersListModel);
         JScrollPane scrollPane = new JScrollPane(ordersList);
         panel.add(scrollPane, BorderLayout.CENTER);
-        
-        JButton refreshButton = new JButton("Refresh Favorites");
+
+        JPanel buttonsPanel = new JPanel();
+
+        JButton refreshButton = new JButton("Refresh Orders");
         refreshButton.addActionListener(e -> {
             ordersListModel.clear();
             if (currentUser != null) {
-                for (Product product : currentUser.getFavoriteProducts()) {
-                    ordersListModel.addElement(product.getProductName() + " - " + product.getProductDescription());
+                for (Order order : completedOrders) {
+                    if (order.getOrderingUser().equals(currentUser)) {
+                        Product product = order.getOrderedProduct();
+                        CreditCard card = order.getCreditCard();
+                        ordersListModel.addElement(product.getProductName() +
+                                " - Paid with card ending in " +
+                                card.getCardNumber().substring(card.getCardNumber().length() - 4));
+                    }
                 }
             }
         });
-        
-        panel.add(refreshButton, BorderLayout.SOUTH);
-        
+        buttonsPanel.add(refreshButton);
+
+        JButton cancelOrderButton = new JButton("Cancel Selected Order");
+        cancelOrderButton.addActionListener(e -> {
+            if (currentUser == null) {
+                JOptionPane.showMessageDialog(panel, "Please login first");
+                return;
+            }
+
+            int selectedIndex = ordersList.getSelectedIndex();
+
+            ArrayList<Order> userOrders = new ArrayList<>();
+            for (Order order : completedOrders) {
+                if (order.getOrderingUser().equals(currentUser)) {
+                    userOrders.add(order);
+                }
+            }
+
+            if (selectedIndex >= 0 && selectedIndex < userOrders.size()) {
+                int confirm = JOptionPane.showConfirmDialog(panel,
+                        "Are you sure you want to cancel this order?",
+                        "Confirm Cancellation", JOptionPane.YES_NO_OPTION);
+
+                if (confirm == JOptionPane.YES_OPTION) {
+                    Order orderToCancel = userOrders.get(selectedIndex);
+
+                    Product product = orderToCancel.getOrderedProduct();
+                    product.setProductStockInformation(product.getProductStockInformation() + 1);
+
+                    completedOrders.remove(orderToCancel);
+
+                    ordersListModel.remove(selectedIndex);
+                    JOptionPane.showMessageDialog(panel, "Order cancelled successfully");
+                }
+            } else {
+                JOptionPane.showMessageDialog(panel, "Please select an order to cancel");
+            }
+        });
+        buttonsPanel.add(cancelOrderButton);
+
+        panel.add(buttonsPanel, BorderLayout.SOUTH);
+
         return panel;
     }
-    
+
     /**
      * @param args the command line arguments
      */

@@ -1,9 +1,4 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package shoppingapp;
-
 /**
  *
  * @author ozgunkasapoglu
@@ -12,7 +7,7 @@ public class Order {
     private User orderingUser;
     private Product orderedProduct;
     private CreditCard creditCard;
-    private int amount;
+    private int amount = 1;
 
     public Order() {
         this.orderingUser = null;

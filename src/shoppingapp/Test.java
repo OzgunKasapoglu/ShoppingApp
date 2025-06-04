@@ -1,6 +1,8 @@
-// src/shoppingapp/Test.java
 package shoppingapp;
-
+/**
+ *
+ * @author ozgunkasapoglu
+ */
 public class Test {
     public static void main(String[] args) {
         java.awt.EventQueue.invokeLater(new Runnable() {
@@ -10,7 +12,6 @@ public class Test {
             }
         });
 
-        // Let the UI initialize (not ideal but works for testing)
         try {
             Thread.sleep(500);
         } catch (InterruptedException e) {

@@ -1,9 +1,4 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package shoppingapp;
-
 /**
  *
  * @author ozgunkasapoglu
@@ -23,7 +18,6 @@ public class Product {
     public Product(String productName, String productColor, String productCategory, int productStockInformation, double productWeight, String productDescription) {
         if (productStockInformation < 0 || productWeight < 0) {
             System.out.println("Stock and weight cannot be negative.");
-            // Optionally, set default values or throw an exception
         } else {
             this.productName = productName;
             this.productColor = productColor;

@@ -1,4 +1,8 @@
 package shoppingapp;
+/**
+ *
+ * @author ozgunkasapoglu
+ */
     import java.time.LocalDate;
     import java.util.Random;
 
@@ -66,28 +70,38 @@ package shoppingapp;
         private void generateRandomCardData() {
             Random random = new Random();
 
-            // Generate card number with valid prefix
             String[] prefixes = {"4", "51", "52", "53", "54", "55", "37", "34", "6011"};
             StringBuilder cardNumber = new StringBuilder(prefixes[random.nextInt(prefixes.length)]);
 
-            // Fill the rest with random digits
             while (cardNumber.length() < 16) {
                 cardNumber.append(random.nextInt(10));
             }
             this.cardNumber = cardNumber.toString();
 
-            // Generate 3-digit security code
             this.securityCode = String.format("%03d", 100 + random.nextInt(900));
 
-            // Generate expiry date (1-5 years in the future)
-            int currentYear = LocalDate.now().getYear() % 100; // Last 2 digits
+            int currentYear = LocalDate.now().getYear() % 100;
             int expiryYear = currentYear + 1 + random.nextInt(5);
             int expiryMonth = 1 + random.nextInt(12);
             this.expirationDate = String.format("%02d/%02d", expiryMonth, expiryYear);
 
-            // Default cardholder name if not set by user constructor
             if (this.cardholderName == null) {
                 this.cardholderName = "Card Holder";
             }
+        }
+
+        public String getFormattedCardNumber() {
+            if (cardNumber == null || cardNumber.length() < 16) {
+                return cardNumber;
+            }
+
+            StringBuilder formatted = new StringBuilder();
+            for (int i = 0; i < cardNumber.length(); i++) {
+                if (i > 0 && i % 4 == 0) {
+                    formatted.append(" ");
+                }
+                formatted.append(cardNumber.charAt(i));
+            }
+            return formatted.toString();
         }
     }
