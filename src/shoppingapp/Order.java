@@ -44,6 +44,16 @@ public class Order {
     public void setCreditCard(CreditCard creditCard) {
         this.creditCard = creditCard;
     }
+
+    public int getAmount() {
+        return amount;
+    }
+
+    public void setAmount(int amount) {
+        if (amount > 0) {
+            this.amount = amount;
+        }
+    }
     
     public void processOrder() {
         orderedProduct.order(amount);

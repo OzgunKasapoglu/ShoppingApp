@@ -123,16 +123,16 @@ public class User {
     public void order(Product product) {
         if (product != null) {
             orderedProducts.add(product);
-            System.out.println("Sipariş verildi! Eklenen ürün:" + product.getProductName());
+            System.out.println("Order placed! Product added:" + product.getProductName());
         }
     }
     
     public void favorite(Product product) {
         if(product != null && !favoriteProducts.contains(product)) {
             favoriteProducts.add(product);
-            System.out.println("Ürün favorilere eklendi. Eklenen ürün: " + product.getProductName());
+            System.out.println("Product is added to favorites: " + product.getProductName());
         } else if(product !=null){
-            System.out.println("Ürün favorilerde zaten mevcut");
+            System.out.println("Product is already in favorites: " + product.getProductName());
         }
     }
 }
