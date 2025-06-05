@@ -20,7 +20,17 @@ public class ShoppingAppUI extends javax.swing.JFrame {
 
     /** Creates new form ShoppingAppUI */
     public ShoppingAppUI() {
+        initializeTheme();
         initComponents();
+        users = Database.loadUsers();
+        products = Database.loadProducts();
+        completedOrders = Database.loadOrders();
+        if (products.isEmpty()) {
+            initializeDefaultProducts();
+        }
+    }
+
+    private void initializeDefaultProducts() {
         products.add(new Product("Laptop", "Black", "Electronics", 10, 2.5, "A powerful laptop"));
         products.add(new Product("Smartphone", "White", "Electronics", 20, 0.3, "Latest smartphone"));
         products.add(new Product("Headphones", "Red", "Audio", 15, 0.2, "Noise cancelling"));
@@ -31,8 +41,40 @@ public class ShoppingAppUI extends javax.swing.JFrame {
         products.add(new Product("Bluetooth Speaker", "Black", "Audio", 18, 0.5, "Portable waterproof speaker"));
         products.add(new Product("Smartwatch", "Gold", "Wearables", 15, 0.08, "Smart watch with health monitoring"));
         products.add(new Product("External SSD", "Black", "Storage", 40, 0.15, "1TB external solid state drive"));
+        products.add(new Product("Air Fryer", "Black", "Kitchen Appliances", 15, 5.2, "Oil-free cooking with adjustable temperature"));
+        products.add(new Product("Robot Vacuum", "White", "Home Appliances", 8, 3.2, "Smart vacuum with mapping capability"));
+        products.add(new Product("Blender", "Red", "Kitchen Appliances", 20, 2.0, "High-power blender for smoothies and soups"));
+        products.add(new Product("Denim Jacket", "Blue", "Clothing", 25, 0.7, "Classic denim jacket with metal buttons"));
+        products.add(new Product("Running Shoes", "Black/Red", "Footwear", 18, 0.4, "Lightweight running shoes with cushioned sole"));
+        products.add(new Product("Winter Coat", "Navy", "Clothing", 12, 1.8, "Water-resistant padded winter coat"));
+        products.add(new Product("Yoga Mat", "Purple", "Fitness", 30, 0.9, "Non-slip exercise mat for yoga and pilates"));
+        products.add(new Product("Camping Tent", "Green", "Outdoor", 10, 3.5, "4-person waterproof tent for camping"));
+        products.add(new Product("Dumbbells Set", "Black", "Fitness", 15, 10.0, "Pair of adjustable dumbbells with case"));
+        products.add(new Product("Bluetooth Earbuds", "White", "Audio", 40, 0.05, "Wireless earbuds with noise cancellation"));
+        products.add(new Product("Gaming Console", "Black", "Electronics", 7, 3.0, "Next-gen gaming console with controller"));
+        products.add(new Product("Portable Projector", "Gray", "Electronics", 9, 1.2, "Mini HD projector for home theater"));
+        products.add(new Product("Wireless Charger", "Black", "Accessories", 35, 0.2, "Fast wireless charging pad for smartphones"));
+        products.add(new Product("Power Bank", "Silver", "Accessories", 45, 0.3, "20000mAh portable battery charger"));
+        products.add(new Product("USB-C Hub", "Gray", "Computer Accessories", 22, 0.15, "7-in-1 USB-C adapter with HDMI and card readers"));
+        products.add(new Product("Ergonomic Chair", "Black", "Furniture", 10, 12.0, "Adjustable office chair with lumbar support"));
+        products.add(new Product("Smart Notebook", "Blue", "Stationery", 25, 0.4, "Reusable notebook with cloud synchronization"));
+        products.add(new Product("Desktop Monitor", "Black", "Electronics", 14, 5.5, "27-inch 4K display with adjustable stand"));
     }
-    
+    private void setupWindowListeners() {
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent windowEvent) {
+                saveAllData();
+            }
+        });
+    }
+
+    private void saveAllData() {
+        Database.saveUsers(users);
+        Database.saveProducts(products);
+        Database.saveOrders(completedOrders);
+        System.out.println("All data saved successfully");
+    }
     /** This method is called from within the constructor to
      * initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is
@@ -56,22 +98,133 @@ public class ShoppingAppUI extends javax.swing.JFrame {
         tabbedPane.addTab("Account", createAccountPanel());
 
         getContentPane().add(tabbedPane, BorderLayout.CENTER);
+        setupWindowListeners();
+    }
+    private void initializeTheme() {
+        try {
+            for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
+                if ("Nimbus".equals(info.getName())) {
+                    UIManager.setLookAndFeel(info.getClassName());
+                    break;
+                }
+            }
+
+            UIManager.put("control", new Color(35, 35, 35));
+            UIManager.put("info", new Color(35, 35, 35));
+            UIManager.put("nimbusBase", new Color(25, 25, 25));
+            UIManager.put("nimbusAlertYellow", new Color(248, 187, 0));
+            UIManager.put("nimbusDisabledText", new Color(128, 128, 128));
+            UIManager.put("nimbusFocus", new Color(72, 125, 182));
+            UIManager.put("nimbusGreen", new Color(0, 138, 0));
+            UIManager.put("nimbusInfoBlue", new Color(47, 92, 180));
+            UIManager.put("nimbusLightBackground", new Color(45, 45, 45));
+            UIManager.put("nimbusOrange", new Color(191, 98, 4));
+            UIManager.put("nimbusRed", new Color(169, 46, 34));
+            UIManager.put("nimbusSelectedText", Color.WHITE);
+            UIManager.put("nimbusSelectionBackground", new Color(72, 125, 182));
+            UIManager.put("text", Color.WHITE);
+
+            UIManager.put("Button.arc", 10);
+            UIManager.put("Component.arc", 8);
+            UIManager.put("Button.margin", new Insets(8, 14, 8, 14)); // Better padding
+            UIManager.put("Button.background", new Color(64, 120, 192));
+            UIManager.put("Button.foreground", Color.WHITE);
+            UIManager.put("Button.font", new Font("SansSerif", Font.BOLD, 14));
+            UIManager.put("Button.textShiftOffset", 0);
+            UIManager.put("Button.focusPainted", false);
+
+            UIManager.put("TextField.background", new Color(45, 45, 45));
+            UIManager.put("TextField.foreground", Color.WHITE);
+            UIManager.put("TextField.margin", new Insets(6, 8, 6, 8));
+            UIManager.put("TextField.caretForeground", Color.WHITE);
+            UIManager.put("PasswordField.background", new Color(45, 45, 45));
+            UIManager.put("PasswordField.foreground", Color.WHITE);
+            UIManager.put("PasswordField.margin", new Insets(6, 8, 6, 8));
+
+            UIManager.put("Table.background", new Color(35, 35, 35));
+            UIManager.put("Table.foreground", Color.WHITE);
+            UIManager.put("Table.gridColor", new Color(60, 60, 60));
+            UIManager.put("Table.selectionBackground", new Color(72, 125, 182, 180));
+            UIManager.put("Table.showGrid", true);
+            UIManager.put("Table.intercellSpacing", new Dimension(1, 1));
+
+            UIManager.put("List.background", new Color(35, 35, 35));
+            UIManager.put("List.foreground", Color.WHITE);
+            UIManager.put("List.selectionBackground", new Color(72, 125, 182, 180));
+            UIManager.put("List.selectionForeground", Color.WHITE);
+
+            UIManager.put("TabbedPane.background", new Color(30, 30, 30));
+            UIManager.put("TabbedPane.foreground", Color.WHITE);
+            UIManager.put("TabbedPane.selectedForeground", Color.WHITE);
+            UIManager.put("TabbedPane.selectedBackground", new Color(55, 55, 55));
+            UIManager.put("TabbedPane.contentBorderInsets", new Insets(4, 4, 4, 4));
+            UIManager.put("TabbedPane.tabAreaInsets", new Insets(4, 4, 0, 4));
+            UIManager.put("TabbedPane.font", new Font("SansSerif", Font.BOLD, 14));
+
+            Font defaultFont = new Font("SansSerif", Font.PLAIN, 14);
+            UIManager.put("Label.font", defaultFont);
+            UIManager.put("TextField.font", defaultFont);
+            UIManager.put("Table.font", defaultFont);
+            UIManager.put("List.font", defaultFont);
+            UIManager.put("ComboBox.font", defaultFont);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private JPanel createWelcomePanel() {
-        JPanel panel = new JPanel(new BorderLayout());
+        JPanel panel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g.create();
 
-        JLabel welcomeLabel = new JLabel("Welcome to the Shopping App!", JLabel.CENTER);
-        welcomeLabel.setFont(new Font(welcomeLabel.getFont().getName(), Font.BOLD, 24));
-        panel.add(welcomeLabel, BorderLayout.NORTH);
+                int w = getWidth();
+                int h = getHeight();
+                GradientPaint gp = new GradientPaint(
+                        0, 0, new Color(35, 40, 50),
+                        0, h, new Color(25, 30, 40));
+                g2d.setPaint(gp);
+                g2d.fillRect(0, 0, w, h);
+                g2d.dispose();
+            }
+        };
+        panel.setLayout(new BorderLayout(0, 20));
 
-        JPanel buttonPanel = new JPanel(new GridBagLayout());
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 10, 10, 10);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setOpaque(false);
+        headerPanel.setBorder(BorderFactory.createEmptyBorder(30, 20, 10, 20));
 
-        JButton loginButton = new JButton("Login to Your Account");
-        loginButton.setFont(new Font(loginButton.getFont().getName(), Font.BOLD, 16));
+        JLabel welcomeLabel = new JLabel("WELCOME TO SHOPPING APP", JLabel.CENTER);
+        welcomeLabel.setFont(new Font("SansSerif", Font.BOLD, 28));
+        welcomeLabel.setForeground(Color.WHITE);
+        headerPanel.add(welcomeLabel, BorderLayout.CENTER);
+
+        JLabel subtitleLabel = new JLabel("Your one-stop solution for online shopping", JLabel.CENTER);
+        subtitleLabel.setFont(new Font("SansSerif", Font.PLAIN, 16));
+        subtitleLabel.setForeground(new Color(180, 180, 180));
+        headerPanel.add(subtitleLabel, BorderLayout.SOUTH);
+
+        JPanel centerWrapper = new JPanel(new GridBagLayout());
+        centerWrapper.setOpaque(false);
+
+        JPanel buttonPanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                g2d.setColor(new Color(30, 35, 45));
+                g2d.fillRoundRect(0, 0, getWidth()-1, getHeight()-1, 15, 15);
+                g2d.dispose();
+            }
+        };
+        buttonPanel.setLayout(new GridLayout(3, 1, 0, 15));
+        buttonPanel.setBorder(BorderFactory.createEmptyBorder(25, 30, 25, 30));
+        buttonPanel.setOpaque(false);
+
+        JButton loginButton = createStylishButton("Login to Your Account", new Color(41, 65, 97));
         loginButton.addActionListener(e -> {
             JTabbedPane tabbedPane = (JTabbedPane) SwingUtilities.getAncestorOfClass(
                     JTabbedPane.class, panel);
@@ -80,8 +233,7 @@ public class ShoppingAppUI extends javax.swing.JFrame {
             }
         });
 
-        JButton registerButton = new JButton("Create a New Account");
-        registerButton.setFont(new Font(registerButton.getFont().getName(), Font.BOLD, 16));
+        JButton registerButton = createStylishButton("Create a New Account", new Color(45, 75, 55));
         registerButton.addActionListener(e -> {
             JTabbedPane tabbedPane = (JTabbedPane) SwingUtilities.getAncestorOfClass(
                     JTabbedPane.class, panel);
@@ -90,17 +242,31 @@ public class ShoppingAppUI extends javax.swing.JFrame {
             }
         });
 
+        JLabel infoLabel = new JLabel("<html><center>Sign in to access your orders, favorites and to explore more!</center></html>", JLabel.CENTER);
+        infoLabel.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        infoLabel.setForeground(new Color(180, 180, 180));
+
+        buttonPanel.add(loginButton);
+        buttonPanel.add(registerButton);
+        buttonPanel.add(infoLabel);
+
+        GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 0;
-        buttonPanel.add(loginButton, gbc);
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.anchor = GridBagConstraints.CENTER;
+        centerWrapper.add(buttonPanel, gbc);
 
-        gbc.gridy = 1;
-        buttonPanel.add(registerButton, gbc);
+        JLabel footerLabel = new JLabel("© 2025 Shopping App - All Rights Reserved", JLabel.CENTER);
+        footerLabel.setForeground(new Color(120, 120, 120));
+        footerLabel.setFont(new Font("SansSerif", Font.PLAIN, 12));
+        footerLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 20, 10));
 
-        panel.add(buttonPanel, BorderLayout.CENTER);
-
-        JLabel infoLabel = new JLabel("<html><center>Please login to your existing account or register<br>a new account to start shopping.</center></html>", JLabel.CENTER);
-        panel.add(infoLabel, BorderLayout.SOUTH);
+        panel.add(headerPanel, BorderLayout.NORTH);
+        panel.add(centerWrapper, BorderLayout.CENTER);
+        panel.add(footerLabel, BorderLayout.SOUTH);
 
         return panel;
     }
@@ -129,7 +295,13 @@ public class ShoppingAppUI extends javax.swing.JFrame {
             for (User user : users) {
                 if (user.getUsername().equals(username) && user.getPassword().equals(password)) {
                     currentUser = user;
-                    JOptionPane.showMessageDialog(this, "Login successful!");
+                    JOptionPane.showMessageDialog(this, "Login successful! Welcome " + user.getName());
+
+                    JTabbedPane tabbedPane = (JTabbedPane) SwingUtilities.getAncestorOfClass(
+                            JTabbedPane.class, panel);
+                    if (tabbedPane != null) {
+                        tabbedPane.setSelectedIndex(3);
+                    }
                     return;
                 }
             }
@@ -199,6 +371,13 @@ public class ShoppingAppUI extends javax.swing.JFrame {
             );
             users.add(newUser);
             JOptionPane.showMessageDialog(this, "Registration successful! You can now login.");
+            saveAllData();
+
+            JTabbedPane tabbedPane = (JTabbedPane) SwingUtilities.getAncestorOfClass(
+                    JTabbedPane.class, panel);
+            if (tabbedPane != null) {
+                tabbedPane.setSelectedIndex(1);
+            }
         });
         registerPanel.add(registerButton);
 
@@ -287,6 +466,7 @@ public class ShoppingAppUI extends javax.swing.JFrame {
 
                     JOptionPane.showMessageDialog(this, quantity + " " +
                             selectedProduct.getProductName() + "(s) added to cart!");
+                    saveAllData();
                 } catch (NumberFormatException ex) {
                     JOptionPane.showMessageDialog(this, "Please enter a valid number");
                 } catch (NullPointerException ex) {
@@ -307,7 +487,17 @@ public class ShoppingAppUI extends javax.swing.JFrame {
             int selectedRow = productTable.getSelectedRow();
             if (selectedRow >= 0 && selectedRow < products.size()) {
                 Product selectedProduct = products.get(selectedRow);
+
+                boolean alreadyInFavorites = currentUser.getFavoriteProducts().contains(selectedProduct);
+
                 currentUser.favorite(selectedProduct);
+
+                if (alreadyInFavorites) {
+                    JOptionPane.showMessageDialog(this, "Product is already in favorites: " + selectedProduct.getProductName());
+                } else {
+                    JOptionPane.showMessageDialog(this, "Product added to favorites: " + selectedProduct.getProductName());
+                }
+                saveAllData();
             } else {
                 JOptionPane.showMessageDialog(this, "Please select a product");
             }
@@ -446,6 +636,7 @@ public class ShoppingAppUI extends javax.swing.JFrame {
 
             JOptionPane.showMessageDialog(this, "Order placed successfully with card ending in " +
                     selectedCard.getCardNumber().substring(selectedCard.getCardNumber().length() - 4));
+            saveAllData();
         });
         buttonsPanel.add(checkoutButton);
 
@@ -510,6 +701,7 @@ public class ShoppingAppUI extends javax.swing.JFrame {
                     refreshButton.doClick();
                     JOptionPane.showMessageDialog(panel, quantityToRemove + " " +
                             selectedProduct.getProductName() + "(s) removed from cart");
+                    saveAllData();
                 } catch (NumberFormatException ex) {
                     JOptionPane.showMessageDialog(panel, "Please enter a valid number");
                 } catch (NullPointerException ex) {
@@ -533,6 +725,7 @@ public class ShoppingAppUI extends javax.swing.JFrame {
                 currentUser.getOrderedProducts().clear();
                 cartListModel.clear();
                 JOptionPane.showMessageDialog(panel, "Cart cleared successfully");
+                saveAllData();
             }
         });
         buttonsPanel.add(clearCartButton);
@@ -580,6 +773,7 @@ public class ShoppingAppUI extends javax.swing.JFrame {
                 currentUser.getFavoriteProducts().remove(selectedIndex);
                 favoritesListModel.remove(selectedIndex);
                 JOptionPane.showMessageDialog(panel, "Item removed from favorites");
+                saveAllData();
             } else {
                 JOptionPane.showMessageDialog(panel, "Please select an item to remove");
             }
@@ -659,6 +853,7 @@ public class ShoppingAppUI extends javax.swing.JFrame {
                             "\nExpiry: " + card.getExpirationDate() +
                             "\nCVV: " + card.getSecurityCode() +
                             "\nCardholder: " + card.getCardholderName());
+            saveAllData();
         });
         creditCardActionPanel.add(addCardButton);
 
@@ -724,6 +919,7 @@ public class ShoppingAppUI extends javax.swing.JFrame {
                         " | CVV: " + card.getSecurityCode());
 
                 JOptionPane.showMessageDialog(panel, "Credit card added successfully!");
+                saveAllData();
             }
         });
         creditCardActionPanel.add(addManualCardButton);
@@ -746,6 +942,7 @@ public class ShoppingAppUI extends javax.swing.JFrame {
                     currentUser.getCreditCards().remove(selectedIndex);
                     cardListModel.remove(selectedIndex);
                     JOptionPane.showMessageDialog(panel, "Credit card removed successfully!");
+                    saveAllData();
                 }
             } else {
                 JOptionPane.showMessageDialog(panel, "Please select a credit card to delete");
@@ -855,6 +1052,7 @@ public class ShoppingAppUI extends javax.swing.JFrame {
 
                     ordersListModel.remove(selectedIndex);
                     JOptionPane.showMessageDialog(panel, "Order cancelled successfully");
+                    saveAllData();
                 }
             } else {
                 JOptionPane.showMessageDialog(panel, "Please select an order to cancel");
@@ -866,23 +1064,60 @@ public class ShoppingAppUI extends javax.swing.JFrame {
 
         return panel;
     }
+    private JButton createStylishButton(String text, Color baseColor) {
+        JButton button = new JButton(text) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                int w = getWidth();
+                int h = getHeight();
+
+                GradientPaint gp = new GradientPaint(
+                        0, 0, baseColor,
+                        0, h, baseColor.darker());
+
+                g2d.setPaint(gp);
+                g2d.fillRoundRect(0, 0, w-1, h-1, 10, 10);
+
+                g2d.setColor(new Color(255, 255, 255, 70));
+                g2d.drawRoundRect(0, 0, w-1, h-1, 10, 10);
+
+                ButtonModel model = getModel();
+                if (model.isPressed()) {
+                    g2d.setColor(new Color(0, 0, 0, 50));
+                    g2d.fillRoundRect(0, 0, w-1, h-1, 10, 10);
+                } else if (model.isRollover()) {
+                    g2d.setColor(new Color(255, 255, 255, 50));
+                    g2d.fillRoundRect(0, 0, w-1, h-1, 10, 10);
+                }
+
+                g2d.dispose();
+
+                super.paintComponent(g);
+            }
+        };
+
+        button.setFont(new Font("SansSerif", Font.BOLD, 16));
+        button.setForeground(Color.WHITE);
+        button.setFocusPainted(false);
+        button.setBorderPainted(false);
+        button.setContentAreaFilled(false);
+        button.setOpaque(false);
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        button.setPreferredSize(new Dimension(300, 50));
+
+        return button;
+    }
 
     /**
      * @param args the command line arguments
      */
+    /**
+     * @param args the command line arguments
+     */
     public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (Exception ex) {
-            java.util.logging.Logger.getLogger(ShoppingAppUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {

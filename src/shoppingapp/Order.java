@@ -1,9 +1,12 @@
 package shoppingapp;
+
+import java.io.Serializable;
+
 /**
  *
  * @author ozgunkasapoglu
  */
-public class Order {
+public class Order implements Serializable {
     private User orderingUser;
     private Product orderedProduct;
     private CreditCard creditCard;

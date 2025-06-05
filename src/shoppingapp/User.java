@@ -1,10 +1,12 @@
 package shoppingapp;
+
+import java.io.Serializable;
 import java.util.ArrayList;
 /**
  *
  * @author ozgunkasapoglu
  */
-public class User {
+public class User implements Serializable {
     private String username;
     private String name;
     private String surname;

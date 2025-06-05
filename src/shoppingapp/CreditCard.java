@@ -3,10 +3,12 @@ package shoppingapp;
  *
  * @author ozgunkasapoglu
  */
-    import java.time.LocalDate;
-    import java.util.Random;
 
-    public class CreditCard {
+import java.io.Serializable;
+import java.time.LocalDate;
+import java.util.Random;
+
+    public class CreditCard implements Serializable {
         private String cardNumber;
         private User creditCardUser;
         private String securityCode;

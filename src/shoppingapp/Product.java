@@ -1,9 +1,12 @@
 package shoppingapp;
+
+import java.io.Serializable;
+
 /**
  *
  * @author ozgunkasapoglu
  */
-public class Product {
+public class Product implements Serializable {
     private String productName;
     private String productColor;
     private String productCategory;
