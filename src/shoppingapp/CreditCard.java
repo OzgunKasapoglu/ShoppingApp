@@ -80,11 +80,13 @@ import java.util.Random;
             }
             this.cardNumber = cardNumber.toString();
 
-            this.securityCode = String.format("%03d", 100 + random.nextInt(900));
+            // Always 3 digits for CVV
+            this.securityCode = String.format("%03d", random.nextInt(1000));
 
+            // Expiry: month 1-12, year >= current year
             int currentYear = LocalDate.now().getYear() % 100;
-            int expiryYear = currentYear + 1 + random.nextInt(5);
-            int expiryMonth = 1 + random.nextInt(12);
+            int expiryYear = currentYear + random.nextInt(6); // 0-5 years ahead
+            int expiryMonth = 6 + random.nextInt(7); // 1-12
             this.expirationDate = String.format("%02d/%02d", expiryMonth, expiryYear);
 
             if (this.cardholderName == null) {

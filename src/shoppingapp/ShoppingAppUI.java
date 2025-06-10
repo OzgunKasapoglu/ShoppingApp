@@ -97,6 +97,124 @@ public class ShoppingAppUI extends javax.swing.JFrame {
         tabbedPane.addTab("Favorites", createFavoritesPanel());
         tabbedPane.addTab("Account", createAccountPanel());
 
+        // ChangeListener to auto-refresh panels when switching tabs
+        tabbedPane.addChangeListener(e -> {
+            JTabbedPane pane = (JTabbedPane) e.getSource();
+            int selectedIndex = pane.getSelectedIndex();
+
+            // Appropriate refresh logic based on the selected tab
+            switch (selectedIndex) {
+                case 3: // Products tab
+                    JTable productTable = (JTable) ((JScrollPane) ((JPanel) pane.getComponentAt(3)).getComponent(0)).getViewport().getView();
+                    DefaultTableModel model = (DefaultTableModel) productTable.getModel();
+                    model.setRowCount(0);
+
+                    for (Product p : products) {
+                        model.addRow(new Object[]{
+                                p.getProductName(),
+                                p.getProductDescription(),
+                                p.getProductCategory(),
+                                p.getProductColor(),
+                                p.getProductWeight() + " kg",
+                                p.getProductStockInformation()
+                        });
+                    }
+                    break;
+
+                case 4: // Cart tab
+                    JList<String> cartList = (JList<String>) ((JScrollPane) ((JPanel) pane.getComponentAt(4)).getComponent(0)).getViewport().getView();
+                    DefaultListModel<String> cartListModel = (DefaultListModel<String>) cartList.getModel();
+                    cartListModel.clear();
+
+                    if (currentUser != null) {
+                        java.util.Map<Product, Integer> productCounts = new java.util.HashMap<>();
+                        for (Product product : currentUser.getOrderedProducts()) {
+                            productCounts.put(product, productCounts.getOrDefault(product, 0) + 1);
+                        }
+
+                        for (java.util.Map.Entry<Product, Integer> entry : productCounts.entrySet()) {
+                            Product product = entry.getKey();
+                            int quantity = entry.getValue();
+
+                            cartListModel.addElement(quantity + "x " + product.getProductName() +
+                                    " - " + product.getProductDescription() +
+                                    " - Category: " + product.getProductCategory() +
+                                    " - Color: " + product.getProductColor() +
+                                    " - Weight: " + product.getProductWeight() + " kg" +
+                                    " - Stock: " + product.getProductStockInformation());
+                        }
+                    }
+                    break;
+
+                case 5: // Orders tab
+                    JList<String> ordersList = (JList<String>) ((JScrollPane) ((JPanel) pane.getComponentAt(5)).getComponent(0)).getViewport().getView();
+                    DefaultListModel<String> ordersListModel = (DefaultListModel<String>) ordersList.getModel();
+                    ordersListModel.clear();
+
+                    if (currentUser != null) {
+                        for (Order order : completedOrders) {
+                            if (order.getOrderingUser().equals(currentUser)) {
+                                Product product = order.getOrderedProduct();
+                                CreditCard card = order.getCreditCard();
+                                ordersListModel.addElement(product.getProductName() +
+                                        " - " + product.getProductDescription() +
+                                        " - Category: " + product.getProductCategory() +
+                                        " - Color: " + product.getProductColor() +
+                                        " - Weight: " + product.getProductWeight() + " kg" +
+                                        " - Paid with card ending in " +
+                                        card.getCardNumber().substring(card.getCardNumber().length() - 4));
+                            }
+                        }
+                    }
+                    break;
+
+                case 6: // Favorites tab
+                    JList<String> favoritesList = (JList<String>) ((JScrollPane) ((JPanel) pane.getComponentAt(6)).getComponent(0)).getViewport().getView();
+                    DefaultListModel<String> favoritesListModel = (DefaultListModel<String>) favoritesList.getModel();
+                    favoritesListModel.clear();
+
+                    if (currentUser != null) {
+                        for (Product product : currentUser.getFavoriteProducts()) {
+                            favoritesListModel.addElement(product.getProductName() +
+                                    " - " + product.getProductDescription() +
+                                    " - Category: " + product.getProductCategory() +
+                                    " - Color: " + product.getProductColor() +
+                                    " - Weight: " + product.getProductWeight() + " kg" +
+                                    " - Stock: " + product.getProductStockInformation());
+                        }
+                    }
+                    break;
+
+                case 7: // Account tab
+                    if (currentUser != null) {
+                        JPanel accountPanel = (JPanel) pane.getComponentAt(7);
+                        JPanel userInfoPanel = (JPanel) accountPanel.getComponent(0);
+
+                        ((JLabel) userInfoPanel.getComponent(1)).setText(currentUser.getUsername());
+                        ((JLabel) userInfoPanel.getComponent(3)).setText(currentUser.getName() + " " + currentUser.getSurname());
+                        ((JLabel) userInfoPanel.getComponent(5)).setText(currentUser.getDateOfBirth());
+                        ((JLabel) userInfoPanel.getComponent(7)).setText(currentUser.getEmailAddress());
+                        ((JLabel) userInfoPanel.getComponent(9)).setText(currentUser.getHomeAddress());
+                        ((JLabel) userInfoPanel.getComponent(11)).setText(currentUser.getWorkAddress());
+
+                        JPanel centerPanel = (JPanel) accountPanel.getComponent(1);
+                        JPanel creditCardDisplayPanel = (JPanel) centerPanel.getComponent(0);
+                        JScrollPane cardScrollPane = (JScrollPane) creditCardDisplayPanel.getComponent(0);
+                        JList<String> cardList = (JList<String>) cardScrollPane.getViewport().getView();
+                        DefaultListModel<String> cardListModel = (DefaultListModel<String>) cardList.getModel();
+
+                        cardListModel.clear();
+                        for (CreditCard card : currentUser.getCreditCards()) {
+                            cardListModel.addElement("Card Number: " + card.getFormattedCardNumber() +
+                                    " | Exp: " + card.getExpirationDate() +
+                                    " | CVV: " + card.getSecurityCode() +
+                                    " | Cardholder: " + card.getCardholderName());
+                        }
+                    }
+                    break;
+            }
+        });
+
         getContentPane().add(tabbedPane, BorderLayout.CENTER);
         setupWindowListeners();
     }
@@ -443,20 +561,25 @@ public class ShoppingAppUI extends javax.swing.JFrame {
 
                 String quantityStr = JOptionPane.showInputDialog(
                         this,
-                        "Enter quantity (available: " + selectedProduct.getProductStockInformation() + "):",
-                        "Quantity",
+                        "How many " + selectedProduct.getProductName() + "(s) do you want to add to cart?",
+                        "Add to Cart",
                         JOptionPane.QUESTION_MESSAGE
                 );
+
+                if (quantityStr == null) {
+                    return;
+                }
 
                 try {
                     int quantity = Integer.parseInt(quantityStr);
                     if (quantity <= 0) {
-                        JOptionPane.showMessageDialog(this, "Quantity must be greater than zero");
+                        JOptionPane.showMessageDialog(this, "Please enter a positive number");
                         return;
                     }
+
                     if (quantity > selectedProduct.getProductStockInformation()) {
-                        JOptionPane.showMessageDialog(this, "Not enough stock available. Max: " +
-                                selectedProduct.getProductStockInformation());
+                        JOptionPane.showMessageDialog(this,
+                                "Not enough stock. Available: " + selectedProduct.getProductStockInformation());
                         return;
                     }
 
@@ -464,12 +587,12 @@ public class ShoppingAppUI extends javax.swing.JFrame {
                         currentUser.order(selectedProduct);
                     }
 
-                    JOptionPane.showMessageDialog(this, quantity + " " +
-                            selectedProduct.getProductName() + "(s) added to cart!");
+                    JOptionPane.showMessageDialog(this,
+                            quantity + " " + selectedProduct.getProductName() + "(s) added to cart");
                     saveAllData();
+
                 } catch (NumberFormatException ex) {
                     JOptionPane.showMessageDialog(this, "Please enter a valid number");
-                } catch (NullPointerException ex) {
                 }
             } else {
                 JOptionPane.showMessageDialog(this, "Please select a product");
@@ -543,7 +666,7 @@ public class ShoppingAppUI extends javax.swing.JFrame {
             }
         });
         buttonsPanel.add(refreshButton);
-        
+
         JButton checkoutButton = new JButton("Checkout");
         checkoutButton.addActionListener(e -> {
             if (currentUser == null) {
@@ -628,6 +751,7 @@ public class ShoppingAppUI extends javax.swing.JFrame {
                 completedOrders.add(order);
             }
 
+            saveAllData();
             productListModel.clear();
             for (Product product : products) {
                 productListModel.addElement(product.getProductName() + " - " + product.getProductDescription() +
